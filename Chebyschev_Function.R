@@ -1,4 +1,4 @@
-Chebyschev <- function(data,window.length=1000,sensitivity=1)
+Chebyschev <- function(data,window.length=1000)
 {
   for (row in 1:(nrow(data)-window.length))
   {
@@ -6,7 +6,7 @@ Chebyschev <- function(data,window.length=1000,sensitivity=1)
     window <- data[(1+row):((window.length)+row),] 
     
     # Work out the number of std devs point is off from window
-    point.deviation <- abs(mean(window$RMSI1)-window$RMSI1[window.length])/(sd(window$RMSI1)/sensitivity)
+    point.deviation <- abs(mean(window$RMSI1)-window$RMSI1[window.length])/(sd(window$RMSI1))
     
     # Get rid of the std deviations below 1. Chebyschev doesn't like them
     if(point.deviation <= 1)

@@ -1,0 +1,16 @@
+{
+    "contents" : "Chebyschev <- function(data,window.length=1000)\n{\n  for (row in 1:(nrow(data)-window.length))\n  {\n    # Extract analysis window from dataset\n    window <- data[(1+row):((window.length)+row),] \n    \n    # Work out the number of std devs point is off from window\n    point.deviation <- abs(mean(window$RMSI1)-window$RMSI1[window.length])/(sd(window$RMSI1))\n    \n    # Get rid of the std deviations below 1. Chebyschev doesn't like them\n    if(point.deviation <= 1)\n    {\n      point.deviation=1\n    }\n    \n    # Calculate the probability the point has a fault\n    pr.fault <- (1-(1/(point.deviation^2)))\n    \n    # Write probability back to data frame\n    data$PrFault[window.length+row] <- pr.fault\n  }\n  return(data)\n}\n  \n",
+    "created" : 1431386727192.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "488538706",
+    "id" : "1997B043",
+    "lastKnownWriteTime" : 1431386742,
+    "path" : "C:/Users/acousla1/OneDrive/Projects/Fault Anticipation/Code/Signature_Detection/Chebyschev/Chebyschev_Function.R",
+    "project_path" : "Chebyschev_Function.R",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}

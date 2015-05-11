@@ -1,11 +1,6 @@
 #########################################################
-# Chebyschev Trial 1 
+# Chebyschev Implementation 
 #
-# Hypothesis:
-# Fault current belongs to a different statistical 
-# distribution than non-fault current
-#
-# Method:
 # Calculate non-fault mean and std dev over a sliding 
 # window and look for deviations from this to detect
 # faults
@@ -15,15 +10,13 @@
 
 require (RODBC)        # Load RODBC package
 require (lubridate)   # Required to manipulate dates
+source ('Chebyschev_Function.R')
 
 # Create a connection to the database called "channel"
 local.connection <- odbcConnect("RTV", believeNRows=FALSE)
 
-# Query the database and put the results into the data frame "LoggingResults"
-logger.results <- sqlQuery(local.connection, 
-                           "SELECT DATEANDTIME, SECONDS, RMSI1, RMSI3 FROM ELSPEC_LOGGER_HARMONICS;")
-
-logger.results$TIMESTAMP <- dmy_hm(logger.results$DATEANDTIME) + as.numeric(logger.results$SECONDS)
+# Query the database and put the results into the data frame logging.results
+logger.results <- sqlQuery(local.connection,"SELECT * FROM ELSPEC.RMS_TRAINING where ts between '01/Feb/15 09:00:00 AM' and '28/Mar/15 09:00:00 AM';")
 
 #Order by timestamp
 logger.results <- logger.results[with(logger.results, order(logger.results$TIMESTAMP)),]
@@ -37,10 +30,9 @@ filtered.results <- subset(logger.results, logger.results$TIMESTAMP >= StartTime
 # Initialise probability of fault column and window length
 filtered.results$PrFault <- 0
 window.length = 5000
-sensitivity = .45
 
 # Run Chebyschev analysis on results
-filtered.results <- Chebyschev(filtered.results,window.length,sensitivity)
+filtered.results <- Chebyschev(filtered.results,window.length)
 
 # Display Results
 par(mfcol=c(2,1))

@@ -1,0 +1,16 @@
+{
+    "contents" : "#########################################################\n# Chebyschev Implementation \n#\n# Calculate non-fault mean and std dev over a sliding \n# window and look for deviations from this to detect\n# faults\n# \n# - Aaron Cousland 01/05/2015\n########################################################\n\nrequire (RODBC)        # Load RODBC package\nrequire (lubridate)   # Required to manipulate dates\nsource ('Chebyschev_Function.R')\n\n# Create a connection to the database called \"channel\"\nlocal.connection <- odbcConnect(\"RTV\", believeNRows=FALSE)\n\n# Query the database and put the results into the data frame logging.results\nlogger.results <- sqlQuery(local.connection,\"SELECT * FROM ELSPEC.RMS_TRAINING where ts between '01/Feb/15 09:00:00 AM' and '28/Mar/15 09:00:00 AM';\")\n\n#Order by timestamp\nlogger.results <- logger.results[with(logger.results, order(logger.results$TIMESTAMP)),]\n\n# Set filtered data subset times and subset the data\nStartTime <- as.POSIXct(\"2015-03-17 10:00:00\", format = \"%Y-%m-%d %H:%M:%OS\", tz = \"UTC\")\nEndTime <- as.POSIXct(\"2015-03-17 11:00:00\", format = \"%Y-%m-%d %H:%M:%OS\", tz = \"UTC\")\n\nfiltered.results <- subset(logger.results, logger.results$TIMESTAMP >= StartTime & logger.results$TIMESTAMP <= EndTime)\n\n# Initialise probability of fault column and window length\nfiltered.results$PrFault <- 0\nwindow.length = 5000\n\n# Run Chebyschev analysis on results\nfiltered.results <- Chebyschev(filtered.results,window.length)\n\n# Display Results\npar(mfcol=c(2,1))\nplot(filtered.results$TIMESTAMP,filtered.results$PrFault)\nplot(filtered.results$TIMESTAMP,filtered.results$RMSI1)\n\n# Zoom and view\nStartTime2 <- as.POSIXct(\"2015-03-17 10:30:00\", format = \"%Y-%m-%d %H:%M:%OS\", tz = \"UTC\")\nEndTime2 <- as.POSIXct(\"2015-03-17 11:35:00\", format = \"%Y-%m-%d %H:%M:%OS\", tz = \"UTC\")\n\nfiltered.results2 <- subset(filtered.results, filtered.results$TIMESTAMP >= StartTime2 & filtered.results$TIMESTAMP <= EndTime2)\npar(mfcol=c(2,1))\nplot(filtered.results2$TIMESTAMP,filtered.results2$PrFault)\nplot(filtered.results2$TIMESTAMP,filtered.results2$RMSI1)\n",
+    "created" : 1431386414287.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "3918281082",
+    "id" : "97EB8D5D",
+    "lastKnownWriteTime" : 1431386857,
+    "path" : "C:/Users/acousla1/OneDrive/Projects/Fault Anticipation/Code/Signature_Detection/Chebyschev/main.R",
+    "project_path" : "main.R",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "r_source"
+}
