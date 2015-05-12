@@ -12,8 +12,6 @@ require (RODBC)        # Load RODBC package
 require (lubridate)   # Required to manipulate dates
 source ('Chebyschev_Function.R')
 
-source('Chebyschev_Function.R')
-
 # Create a connection to the database called "channel"
 local.connection <- odbcConnect("RTV", believeNRows=FALSE)
 
