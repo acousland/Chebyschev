@@ -52,10 +52,39 @@ plot.PrFault <- ggplot(filtered.results, aes(x=TS, y=PrFault, ymin=0, ymax=PrFau
 
 grid.arrange(plot.I1, plot.PrFault, ncol=1)
 
-# Threasholding
+# Threshold testing
+rm(result)
+result <- data.frame("Threshold"=0,"Negative"=0,"Positive"=0)
 
+for (i in seq(0,1,by=0.01))
+{
+threshold <- i
+logger.results.threshold <- logger.results
+logger.results.threshold$PrFault2 <- ifelse(logger.results.threshold$PrFault<threshold,0,logger.results.threshold$PrFault)
 
 # Measure performance
-results <- filtered.results %>%
+result.tmp <- logger.results.threshold %>%
   group_by(FAULT) %>%
-  summarise (Score = sum(PrFault))
+  summarise (Score = sum(PrFault2))
+
+result <- rbind(result,c(threshold,result.tmp$Score))
+}
+result$success <- result$Positive/result$Negative
+print(result)
+
+
+########################################################### Not needed yet ######################
+
+
+# Thresholding
+threshold <- .5
+logger.results.threshold <- logger.results
+logger.results.threshold$PrFault2 <- ifelse(logger.results.threshold$PrFault<0.5,0,logger.results.threshold$PrFault)
+
+# Measure performance
+result <- data.frame("Threshold"=0,"Negative"=0,"Positive"=0)
+result.tmp <- logger.results.threshold %>%
+  group_by(FAULT) %>%
+  summarise (Score = sum(PrFault2))
+
+result <- rbind(result,c(threshold,result.tmp$Score))
