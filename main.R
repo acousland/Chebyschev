@@ -15,6 +15,7 @@ require (gridExtra)   # For further graph manipulation
 require (dplyr)
 
 source ('Chebyschev_Function.R')
+source ('Threshold_Optimisation.R')
 
 # Create a connection to the database called "channel"
 local.connection <- odbcConnect("RTV", believeNRows=FALSE)
@@ -45,46 +46,36 @@ EndTime <- force_tz(as.POSIXct("2015-03-17 11:00:00 AM", format = "%Y-%m-%d %H:%
 
 filtered.results <- subset(logger.results, logger.results$TS >= StartTime & logger.results$TS <= EndTime)
 
-
 # Display Results
 plot.I1 <- ggplot(filtered.results, aes(x=TS, y=RMSI1,colour=FAULT)) + geom_point()
 plot.PrFault <- ggplot(filtered.results, aes(x=TS, y=PrFault, ymin=0, ymax=PrFault)) + geom_ribbon()
 
 grid.arrange(plot.I1, plot.PrFault, ncol=1)
 
-# Threshold testing
-rm(result)
-result <- data.frame("Threshold"=0,"Negative"=0,"Positive"=0)
+# Optimise the trigger threshold
+results <- Threshold_Optimise(logger.results,0,1,0.01)
+threshold <- results[which.max(results[,4]),1]
+plot(results$Threshold,results$success)
 
-for (i in seq(0,1,by=0.01))
-{
-threshold <- i
+# Thresholding
 logger.results.threshold <- logger.results
 logger.results.threshold$PrFault2 <- ifelse(logger.results.threshold$PrFault<threshold,0,logger.results.threshold$PrFault)
 
 # Measure performance
-result.tmp <- logger.results.threshold %>%
+performance <- logger.results.threshold %>%
   group_by(FAULT) %>%
   summarise (Score = sum(PrFault2))
 
-result <- rbind(result,c(threshold,result.tmp$Score))
-}
-result$success <- result$Positive/result$Negative
-print(result)
+print(performance)
+print(paste("Score =",performance$Score[2]-performance$Score[1],"/",sum(logger.results$FAULT==TRUE)))
 
+# Interrogate results
+StartTime <- force_tz(as.POSIXct("2015-03-17 08:45:00", format = "%Y-%m-%d %H:%M:%OS"),"AEST")
+EndTime <- force_tz(as.POSIXct("2015-03-17 11:00:00", format = "%Y-%m-%d %H:%M:%OS"),"AEST")
 
-########################################################### Not needed yet ######################
+logger.results.threshold2 <- subset(logger.results.threshold, logger.results.threshold$TS >= StartTime & logger.results.threshold$TS <= EndTime)
 
+plot(logger.results.threshold2$TS,logger.results.threshold2$RMSI1, type="l")
+polygon(logger.results.threshold2$TS,logger.results.threshold2$PrFault2*max(logger.results.threshold2$RMSI1), col =rgb(1,0,0,alpha=0.3),xlab="",ylab="",yaxt="n",border = NA)
+axis(4)
 
-# Thresholding
-threshold <- .5
-logger.results.threshold <- logger.results
-logger.results.threshold$PrFault2 <- ifelse(logger.results.threshold$PrFault<0.5,0,logger.results.threshold$PrFault)
-
-# Measure performance
-result <- data.frame("Threshold"=0,"Negative"=0,"Positive"=0)
-result.tmp <- logger.results.threshold %>%
-  group_by(FAULT) %>%
-  summarise (Score = sum(PrFault2))
-
-result <- rbind(result,c(threshold,result.tmp$Score))

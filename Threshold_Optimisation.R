@@ -1,21 +1,22 @@
-# Threshold testing
-rm(result)
-result <- data.frame("Threshold"=0,"Negative"=0,"Positive"=0)
-
-for (i in seq(.9,1,by=0.001))
+Threshold_Optimise <- function(data,min=0,max=1,step=0.1)
 {
-  threshold <- i
-  logger.results.threshold <- logger.results
-  logger.results.threshold$PrFault2 <- ifelse(logger.results.threshold$PrFault<threshold,0,logger.results.threshold$PrFault)
+  #initialise results dataframe
+  result <- data.frame("Threshold"=0,"Negative"=0,"Positive"=0)
   
-  # Measure performance
-  result.tmp <- logger.results.threshold %>%
-    group_by(FAULT) %>%
-    summarise (Score = sum(PrFault2))
-  
-  result <- rbind(result,c(threshold,result.tmp$Score))
+  for (i in seq(min,max,by=step))
+  {
+    threshold <- i
+    data.threshold <- data
+    data.threshold$PrFault2 <- ifelse(data.threshold$PrFault<threshold,0,data.threshold$PrFault)
+    
+    # Measure performance
+    result.tmp <- data.threshold %>%
+      group_by(FAULT) %>%
+      summarise (Score = sum(PrFault2))
+    
+    result <- rbind(result,c(threshold,result.tmp$Score))
+  }
+  result$success <- result$Positive/result$Negative
+  return(result)
 }
-result$success <- result$Positive/result$Negative
-print(result)
-
-plot(result$Threshold,result$success)
+# Threshold testing
