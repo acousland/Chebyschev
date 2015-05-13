@@ -18,10 +18,12 @@ source ('Chebyschev_Function.R')
 source ('Threshold_Optimisation.R')
 
 # Create a connection to the database called "RTV"
+odbcCloseAll()
 local.connection <- odbcConnect("RTV", believeNRows=FALSE)
 
 # Query the database and put the results into the data frame logging.results
 logger.results <- sqlQuery(local.connection,"SELECT * FROM ELSPEC.RMS_TRAINING where ts between '17/Mar/15 08:00:00 AM' and '17/Mar/15 03:00:00 PM';")
+odbcCloseAll()
 
 #Order by timestamp and force local timestamp
 logger.results <- logger.results[with(logger.results, order(logger.results$TS)),]
@@ -29,7 +31,7 @@ logger.results$TS <- force_tz(logger.results$TS,"AEST")
 
 # Initialise probability of fault column and window length
 logger.results$PrFault <- 0
-window.length = 500
+window.length = 1000
 
 # Run Chebyschev analysis on results
 logger.results <- Chebyschev(logger.results,window.length)

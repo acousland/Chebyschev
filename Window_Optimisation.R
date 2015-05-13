@@ -35,9 +35,9 @@ logger.results$TS <- force_tz(logger.results$TS,"AEST")
 logger.results$PrFault <- 0
 
 # Loop to calculate the window length with the highest sucess rate
-for (i in seq(1,11,by=0.5))
+for (i in seq(5,11,by=0.5))
 {
-  window.length = exp(i)
+  window.length = 10
   
   # Run Chebyschev analysis on results
   ptm <- proc.time()
