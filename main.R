@@ -65,7 +65,7 @@ performance <- logger.results.threshold %>%
   group_by(FAULT) %>%
   summarise (Score = sum(PrFault2))
 
-print(performance)
+print(performance$Score)
 print(paste("Score =",performance$Score[2]-performance$Score[1],"/",sum(logger.results$FAULT==TRUE)))
 
 # Interrogate results
