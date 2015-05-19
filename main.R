@@ -34,7 +34,7 @@ logger.results$PrFault <- 0
 window.length = 1440
 
 # Superimpose load current on fault phase
-logger.results$RMSI1 <- logger.results$RMSI1 + logger.results$RMSI2 
+#logger.results$RMSI1 <- logger.results$RMSI1 + logger.results$RMSI2 
 
 # Run Chebyschev analysis on results
 logger.results <- Chebyschev(logger.results,window.length)
